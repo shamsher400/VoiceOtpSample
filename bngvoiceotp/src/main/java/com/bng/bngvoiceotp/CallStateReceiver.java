@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import com.bng.magiccall.Utils.DebugLogManager;
 
 class CallStateReceiver extends BroadcastReceiver {
 

@@ -8,10 +8,11 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Handler;
 import android.provider.CallLog;
-import android.support.annotation.RequiresPermission;
-import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+
+import androidx.annotation.RequiresPermission;
+import androidx.core.content.ContextCompat;
 
 import com.google.gson.JsonObject;
 
