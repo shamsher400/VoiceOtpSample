@@ -111,6 +111,11 @@ public class BngVoiceOtpVerification implements CallState {
         }
     }
 
+
+    public void setSdkTimeOut(long sdkTimeOutInSec){
+        this.sdkTimeOutInSec = sdkTimeOutInSec;
+    }
+
     public void setUserMobileNumber(String userMobileNo){
         this.userMobileNo = userMobileNo;
     }
