@@ -34,6 +34,8 @@ public class BngVoiceOtpVerification implements CallState {
     private String cliNumber = "";
     private static BngVoiceOtpVerification instance;
     private Date dateT;
+    private Handler handler;
+    private long sdkTimeOutInSec = 60; // Default timeOut
 
     private BngVoiceOtpVerification(){
     }
@@ -93,7 +95,12 @@ public class BngVoiceOtpVerification implements CallState {
 
     public void deInitialize(){
         if (broadcastReceiver != null) {
+            if (handler != null){
+                handler.removeCallbacksAndMessages(null);
+            }
+            handler = null;
             Log.d(TAG,"deInitialize()");
+            bngVoiceOtpCallBack.deInitialize("SDK DeInitialize");
             mContext.unregisterReceiver(broadcastReceiver);
             broadcastReceiver = null;
             userMobileNo = "";
@@ -166,6 +173,8 @@ public class BngVoiceOtpVerification implements CallState {
                         if (response.body().has("cli")){
                             cliNumber = response.body().get("cli").getAsString();
                             if (!cliNumber.equals("")){
+                                verifySdkTimeOut();
+                                bngVoiceOtpCallBack.callInitiate(cliNumber,response.body().get("reason").getAsString());
                             }else {
                                 bngVoiceOtpCallBack.failure("Cli number not found");
                             }
@@ -198,8 +207,24 @@ public class BngVoiceOtpVerification implements CallState {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("msisdn", userMobileNo);
         endCallRequest(jsonObject);
-
     }
+
+
+    private void verifySdkTimeOut(){
+
+        handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                bngVoiceOtpCallBack.failure("SDK time out");
+                handler = null;
+                deInitialize();
+            }
+        }, sdkTimeOutInSec * 1000);
+    }
+
+
+
 
     private void endCallRequest(JsonObject requestMsisdn){
         ApiClient.getApiService().endCallRequest(requestMsisdn).enqueue(new Callback<JsonObject>() {
@@ -210,7 +235,7 @@ public class BngVoiceOtpVerification implements CallState {
 
                     String status = response.body().get("status").getAsString();
                     if (status.equalsIgnoreCase("success")) {
-                       goForGetCalLogs();
+                        goForGetCalLogs();
                     } /*else {
                         bngVoiceOtpCallBack.failure("response code " + response.code());
                     }*/
@@ -233,38 +258,17 @@ public class BngVoiceOtpVerification implements CallState {
         }, 2000);
     }
 
-    public void getCallDetails() {
+    private void getCallDetails() {
         StringBuffer sb = new StringBuffer();
-        Cursor managedCursor =  mContext.managedQuery(CallLog.Calls.CONTENT_URI, null, null,null,  android.provider.CallLog.Calls.DATE  +" DESC limit 5");
-        /*Cursor managedCursor = getContentResolver().query( CallLog.Calls.CONTENT_URI,
-                null, null, null, android.provider.CallLog.Calls.DATE + " DESC limit 1;");*/
+        Cursor managedCursor =  mContext.managedQuery(CallLog.Calls.CONTENT_URI, null, null,null,  CallLog.Calls.DATE  +" DESC limit 5");
 
         int number = managedCursor.getColumnIndex(CallLog.Calls.NUMBER);
-        int type = managedCursor.getColumnIndex(CallLog.Calls.TYPE);
         int date = managedCursor.getColumnIndex(CallLog.Calls.DATE);
-        int duration = managedCursor.getColumnIndex(CallLog.Calls.DURATION);
         sb.append("Call Log :");
         int i = 0;
         while (managedCursor.moveToNext() && i < 10) {
             i++;
             String phNumber = managedCursor.getString(number);
-            String callType = managedCursor.getString(type);
-            String callDate = managedCursor.getString(date);
-//            Date callDayTime = new Date(Long.valueOf(callDate));
-//            String callDuration = managedCursor.getString(duration);
-            String dir = null;
-            int dircode = Integer.parseInt(callType);
-            switch (dircode ) {
-                case CallLog.Calls.OUTGOING_TYPE:
-                    dir = "OUTGOING";
-                    break;
-                case CallLog.Calls.INCOMING_TYPE:
-                    dir = "INCOMING";
-                    break;
-                case CallLog.Calls.MISSED_TYPE:
-                    dir = "MISSED";
-                    break;
-            }
             long newDate = Long.parseLong(managedCursor.getString(date));
             if(dateT!=null) {
                 if (dateT.getTime() < newDate) {

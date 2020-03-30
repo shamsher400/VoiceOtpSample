@@ -1,9 +1,10 @@
 package com.bng.bngvoiceotp;
 
  public interface BngVoiceOtpCallBack {
-    public void initialize(String status);
-    public void success(String number, String status);
-    public void failure(String reason);
-    public void error(String error);
-    public void deInitialize(String message);
+    void initialize(String status);
+    void callInitiate(String cliNumber, String message);
+    void success(String number, String status);
+    void failure(String reason);
+    void error(String error);
+    void deInitialize(String message);
 }
