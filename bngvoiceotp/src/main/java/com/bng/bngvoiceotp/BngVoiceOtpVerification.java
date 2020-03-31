@@ -291,6 +291,8 @@ public class BngVoiceOtpVerification implements CallState {
         if (findNumbers.contains(cliNumber)){
             bngVoiceOtpCallBack.success(cliNumber, "Verified number ");
             deInitialize();
+        }else {
+            bngVoiceOtpCallBack.numberNotMatch(cliNumber, findNumbers);
         }
     }
 
