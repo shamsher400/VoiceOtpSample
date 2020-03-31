@@ -270,10 +270,8 @@ public class BngVoiceOtpVerification implements CallState {
 
         int number = managedCursor.getColumnIndex(CallLog.Calls.NUMBER);
         int date = managedCursor.getColumnIndex(CallLog.Calls.DATE);
-        sb.append("Call Log :");
-        int i = 0;
-        while (managedCursor.moveToNext() && i < 10) {
-            i++;
+        sb.append("Call Numbers :");
+        while (managedCursor.moveToNext()) {
             String phNumber = managedCursor.getString(number);
             long newDate = Long.parseLong(managedCursor.getString(date));
             if(dateT!=null) {
