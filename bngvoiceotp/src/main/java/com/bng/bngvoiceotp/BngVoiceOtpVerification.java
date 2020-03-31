@@ -37,6 +37,7 @@ public class BngVoiceOtpVerification implements CallState {
     private Date dateT;
     private Handler handler;
     private long sdkTimeOutInSec = 60; // Default timeOut
+    private boolean isEndCallSuccess = false;
 
     private BngVoiceOtpVerification(){
     }
@@ -58,7 +59,11 @@ public class BngVoiceOtpVerification implements CallState {
                 endCallRequest();
             }
             if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-
+                Log.d("EXTRA_STATE_IDLE", "true");
+                if(isEndCallSuccess){
+                    goForGetCalLogs();
+                    isEndCallSuccess =false;
+                }
             }
 
 
@@ -107,6 +112,7 @@ public class BngVoiceOtpVerification implements CallState {
             userMobileNo = "";
             showLogs = false;
             dateT = null;
+            isEndCallSuccess =false;
             ApiClient.BASE_URL = "";
             ApiClient.isHttpsRequest = false;
         }
@@ -241,7 +247,8 @@ public class BngVoiceOtpVerification implements CallState {
 
                     String status = response.body().get("status").getAsString();
                     if (status.equalsIgnoreCase("success")) {
-                        goForGetCalLogs();
+                        //  goForGetCalLogs();
+                        isEndCallSuccess=true;
                     } /*else {
                         bngVoiceOtpCallBack.failure("response code " + response.code());
                     }*/
@@ -261,7 +268,7 @@ public class BngVoiceOtpVerification implements CallState {
             public void run() {
                 getCallDetails();
             }
-        }, 2000);
+        }, 1000);
     }
 
     private void getCallDetails() {
@@ -274,6 +281,7 @@ public class BngVoiceOtpVerification implements CallState {
         while (managedCursor.moveToNext()) {
             String phNumber = managedCursor.getString(number);
             long newDate = Long.parseLong(managedCursor.getString(date));
+            // Log.d("CALL NUMBERS:: ","phone number : "+phNumber+" call Date :: "+newDate+" initiate time:: "+dateT.getTime() );
             if(dateT!=null) {
                 if (dateT.getTime() < newDate) {
                     sb.append(phNumber).append(",");
